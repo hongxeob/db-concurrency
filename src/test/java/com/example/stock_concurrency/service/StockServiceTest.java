@@ -14,11 +14,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import com.example.stock_concurrency.domain.Stock;
-import com.example.stock_concurrency.service.mysql.facade.NamedLockStockFacade;
-import com.example.stock_concurrency.service.mysql.facade.OptimisticLockStockFacade;
 import com.example.stock_concurrency.repository.StockRepository;
 import com.example.stock_concurrency.service.mysql.PessimisticLockStockService;
+import com.example.stock_concurrency.service.mysql.facade.NamedLockStockFacade;
+import com.example.stock_concurrency.service.mysql.facade.OptimisticLockStockFacade;
 import com.example.stock_concurrency.service.redis.facade.LettuceLockStockFacade;
+import com.example.stock_concurrency.service.redis.facade.RedissonLockStockFacade;
 
 @SpringBootTest
 class StockServiceTest {
@@ -40,6 +41,9 @@ class StockServiceTest {
 
 	@Autowired
 	private LettuceLockStockFacade lettuceLockStockFacade;
+
+	@Autowired
+	private RedissonLockStockFacade redissonLockStockFacade;
 
 	@Autowired
 	private StockRepository stockRepository;
@@ -216,6 +220,32 @@ class StockServiceTest {
 					lettuceLockStockFacade.decrease(1L, 1L);
 				} catch (InterruptedException e) {
 					throw new RuntimeException(e);
+				} finally {
+					latch.countDown();
+				}
+			});
+		}
+		latch.await();
+		Stock stock = stockRepository.findById(1L).orElseThrow();
+
+		//then
+		assertThat(stock.getQuantity()).isEqualTo(0);
+	}
+
+	@Test
+	@DisplayName("동시에 100개 요청 - redissonLock")
+	void redissonLockDecreaseTest() throws Exception {
+
+		//given
+		int threadCount = 100;
+		ExecutorService executorService = Executors.newFixedThreadPool(32);
+		CountDownLatch latch = new CountDownLatch(threadCount);
+
+		//when
+		for (int i = 0; i < threadCount; i++) {
+			executorService.submit(() -> {
+				try {
+					redissonLockStockFacade.decrease(1L, 1L);
 				} finally {
 					latch.countDown();
 				}
