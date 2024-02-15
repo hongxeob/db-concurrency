@@ -1,9 +1,8 @@
-package com.example.stock_concurrency.facade;
+package com.example.stock_concurrency.service.mysql.facade;
 
 import org.springframework.stereotype.Component;
 
-import com.example.stock_concurrency.domain.Stock;
-import com.example.stock_concurrency.service.OptimisticLockService;
+import com.example.stock_concurrency.service.mysql.OptimisticLockService;
 
 @Component
 public class OptimisticLockStockFacade {

@@ -1,10 +1,10 @@
-package com.example.stock_concurrency.facade;
+package com.example.stock_concurrency.service.mysql.facade;
 
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.stock_concurrency.repository.LockRepository;
-import com.example.stock_concurrency.service.NamedLockStockService;
+import com.example.stock_concurrency.service.mysql.NamedLockStockService;
 import com.example.stock_concurrency.service.StockService;
 
 @Component

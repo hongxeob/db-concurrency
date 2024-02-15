@@ -1,4 +1,4 @@
-package com.example.stock_concurrency.service;
+package com.example.stock_concurrency.service.mysql;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
