@@ -8,6 +8,7 @@ import com.example.stock_concurrency.repository.StockRepository;
 
 @Service
 public class OptimisticLockService {
+
 	private final StockRepository stockRepository;
 
 	public OptimisticLockService(StockRepository stockRepository) {
@@ -29,5 +30,4 @@ public class OptimisticLockService {
 
 		stockRepository.saveAndFlush(stock);
 	}
-
 }
