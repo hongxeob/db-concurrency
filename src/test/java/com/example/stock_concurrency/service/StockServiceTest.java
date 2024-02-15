@@ -26,6 +26,9 @@ class StockServiceTest {
 	private SynchronizedStockService synchronizedStockService;
 
 	@Autowired
+	private PessimisticLockStockService pessimisticLockStockService;
+
+	@Autowired
 	private StockRepository stockRepository;
 
 	@BeforeEach
@@ -79,7 +82,7 @@ class StockServiceTest {
 	}
 
 	@Test
-	@DisplayName("동시에 100개 요청 - Normal")
+	@DisplayName("동시에 100개 요청 - Synchronized")
 	void synchronizedDecreaseTest() throws Exception {
 
 		//given
@@ -92,6 +95,32 @@ class StockServiceTest {
 			executorService.submit(() -> {
 				try {
 					synchronizedStockService.decrease(1L, 1L);
+				} finally {
+					latch.countDown();
+				}
+			});
+		}
+		latch.await();
+		Stock stock = stockRepository.findById(1L).orElseThrow();
+
+		//then
+		assertThat(stock.getQuantity()).isEqualTo(0);
+	}
+
+	@Test
+	@DisplayName("동시에 100개 요청 - pessimisticLock")
+	void pessimisticLockDecreaseTest() throws Exception {
+
+		//given
+		int threadCount = 100;
+		ExecutorService executorService = Executors.newFixedThreadPool(32);
+		CountDownLatch latch = new CountDownLatch(threadCount);
+
+		//when
+		for (int i = 0; i < threadCount; i++) {
+			executorService.submit(() -> {
+				try {
+					pessimisticLockStockService.decrease(1L, 1L);
 				} finally {
 					latch.countDown();
 				}
